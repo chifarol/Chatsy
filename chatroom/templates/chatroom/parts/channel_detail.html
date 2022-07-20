@@ -1,0 +1,143 @@
+
+{% extends '../base.html' %}
+{% load static %}
+  
+{% block sidebar %}
+
+<div id="sidebar">
+      <div id="sidebar-top">
+        {% if context.previous %}
+        <a href="{% url 'chatroom:home' %}"> &#60;&#60;</a>
+        {% else %}
+        {% endif %}
+        <span id="channels-link"><a href="{% url 'chatroom:home' %}">{{ context.channel_title }}</a></span>
+        <span id="cancel-menu">x</span>
+      </div>
+      <div id="sidebar-middle">
+          <span class="sidebar-channel-title">{{ context.channel.title }} </span>
+          <p class="sidebar-channel-desc">{{ context.channel.desc }}</p>
+          <span class="channel-members-heading">Members:</span>
+        <div id="channel-list">
+          {% for member in context.channel.members.all %}
+          <a href="" class="channel-item">
+              <div class="chat-item-dp">
+            <img src="{{ member.photo.url }}" alt="" />
+          </div>
+            <div class="channel-item-member-name">
+              {{member.user.username}}
+            </div>
+          </a>
+          {% empty %}
+          <span>No members yet</span>
+          {% endfor %}
+        </div>
+      </div> 
+      {% include './sidebar_bottom.html' %}
+    </div>
+
+{% endblock %}
+  
+{% block main %}
+
+<div id="main">
+      <div id="main-top">
+        <img src="{% static 'chatroom/temp-images/menu-solid.svg' %}" alt="" id="menu-icon">
+        <p id="channel-title ">{{ context.channel.title }}</p>
+      </div>
+      {% if messages%}
+        <ul>
+        {% for msg in messages %}
+        <li {% if msg.tags %} class='{{ msg.tags }}'{% endif %}>
+          {{msg}}
+        </li>
+        {% endfor %}
+          </ul>
+        {% else %}
+        <p></p>
+      {% endif %}
+      <div id="main-middle-chat">
+        {% for msg in context.channel.channel_messages.all %}
+        <div class="chat-item">
+          <div class="chat-item-dp">
+            {% if msg.author.member.photo.url %}
+            <img src="{{ msg.author.member.photo.url }}" alt="" id="sidebar-dp"/>
+        {% else %}
+        <img src="{% static 'chatroom/temp-images/no_images.png' %}" alt="" id="sidebar-dp" />
+        {% endif %}
+          </div>
+          <div class="chat-item-right">
+            <div class="chat-item-desc">
+              <span>{{ msg.author.username }}</span>
+              <span>{{ msg.created | date:"H:i" }} &middot; {{ msg.created | date:"m M Y" }}</span>
+            </div>
+            <div class="chat-text">
+              <p>
+                {{ msg.text | linebreaks }}
+              </p>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <span class="info">no messages here</span>
+        {% endfor %}
+        
+      </div>
+      <div id="main-bottom">
+        <form action="" method="post" id="message-bar">
+          {% csrf_token %}
+          {{ context.msg_form.text }}
+          <button><img src="{% static 'chatroom/temp-images/send-solid.svg' %}" alt="" /> </button>
+        </form>
+      </div>
+    </div>
+<script>
+  const messageBox = document.querySelector("#message");
+  function auto_grow(element) {
+    element.style.height = "auto";
+    element.style.height = (element.scrollHeight)+"px";
+  };
+  const room_name = "{{ context.channel.slug }}" ;
+  const username = "{{request.user.username}}";
+  const chatSocket = new WebSocket( 'wss://' + window.location.host + '/ws/chat/' + room_name + '/'
+        );
+  chatSocket.onmessage = (e)=> {
+    const dataContainer = JSON.parse(e.data);
+    const data = dataContainer.msg_container
+    const chatThread = document.querySelector('#main-middle-chat')
+    chatThread.innerHTML += (`<div class="chat-item" >
+          <div class="chat-item-dp">
+        <img src="${data.author_photo_url} " alt="" id="sidebar-dp" />
+          </div>
+          <div class="chat-item-right">
+            <div class="chat-item-desc">
+              <span>${ data.username }</span>
+              <span>${ data.msg_time } &middot; ${data.msg_date }</span>
+            </div>
+            <div class="chat-text">
+              <p>
+                ${ data.message.replace(/\n/g, '<br>\n')}
+              </p>
+            </div>
+          </div>
+        </div>`);
+    
+  };
+  chatSocket.onclose = function(e) {
+    console.error('Chat socket closed unexpectedly');
+  };
+  x = document.querySelector('#message-bar')
+  x.onsubmit = (event) => {
+    event.preventDefault()
+    messageBox.style.height = 'auto';
+    const messageInputDom = document.querySelector('#message');
+    const message = messageInputDom.value;
+    chatSocket.send(JSON.stringify({
+        'message': message,
+        'channel-slug':room_name,
+        'username':username,
+    }));
+    messageInputDom.value = '';
+      };
+</script>
+{% endblock %}
+

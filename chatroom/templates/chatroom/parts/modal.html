@@ -1,0 +1,39 @@
+ {% extends '../base.html' %}
+
+
+{% block modal %}
+<div id="modal" style="display:flex">
+    <div class="create-channel-container">
+      
+      <h2 id="create-channel-heading">{{title}}</h2>
+      {% if messages%}
+<ul>
+{% for msg in messages %}
+<li {% if msg.tags %} class='{{ msg.tags }}'{% endif %}>
+  {{msg}}
+</li>
+{% endfor %}
+  </ul>
+{% else %}
+<p></p>
+{% endif %}
+      <span id="cancel-modal">x</span>
+      <form action="" method="post">
+        {% csrf_token %}
+      {% for field in form %}
+        {{ field.label_tag }}
+        <ul>
+        {% for error in field.errors %}
+        <li class='error'>{{error}} </li>
+        {% endfor %}
+          </ul>
+        {{ field }}
+        {% endfor  %}
+        <button id="create-channel-save">{{title}}</button>
+      </form>
+    </div>
+  </div>
+ 
+{% endblock %}
+
+

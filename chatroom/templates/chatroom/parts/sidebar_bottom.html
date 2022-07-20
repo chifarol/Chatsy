@@ -1,0 +1,35 @@
+{% load static %}
+<div id="sidebar-bottom">
+        {% if request.user.member.photo.url %}
+        <img src="{{request.user.member.photo.url}}" alt="" id="sidebar-dp" />
+        {% else %}
+        <img src="{% static 'chatroom/temp-images/no_images.png' %}" alt="" id="sidebar-dp" />
+        {% endif %}
+        <div id="sidebar-extra">
+          <p id="sidebar-display-name">
+            {{request.user.username}}
+          </p>
+          <!-- <div class="sidebar-expandable-container"> -->
+
+          <span id="sidebar-bottom-expander">
+            <img src="{% static 'chatroom/temp-images/down-arrow.svg' %}" alt="" id="sidebar-bottom-expander-icon">
+            <div id="sidebar-expandable">
+              <a href="" class="sidebar-expandable-item">
+                <img src="{% static 'chatroom/temp-images/account-profile-circle.svg' %}" alt="" />
+                <p>Profile</p>
+              </a>
+              <a href="" class="sidebar-expandable-item">
+                <img src="{% static 'chatroom/temp-images/waving_hand.svg' %}" alt="" />
+                <p>Tweeter</p>
+              </a>
+              <hr />
+              <a href="{% url 'chatroom:logout' %}" class="sidebar-expandable-item logout">
+                <img src="{% static 'chatroom/temp-images/logout.svg' %}" alt="" />
+                <p>Logout</p>
+              </a>
+            </div>
+          </span>
+          <!-- </div> -->
+
+        </div>
+      </div>

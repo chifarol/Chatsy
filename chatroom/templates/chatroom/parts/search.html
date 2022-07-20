@@ -1,0 +1,138 @@
+
+{% extends '../base.html' %}
+{% load static %}
+
+{% block modal %}
+
+  <div id="modal">
+    <div class="create-channel-container">
+      <span id="cancel-modal">x</span>
+      <span id="create-channel-heading">Create New Channel</span>
+      {% if messages%}
+<ul>
+{% for msg in messages %}
+<li {% if msg.tags %} class='{{ msg.tags }}'{% endif %}>
+  {{msg}}
+</li>
+{% endfor %}
+  </ul>
+{% else %}
+<p></p>
+{% endif %}
+      <form action="{% url 'chatroom:channel_create' %}" method="post">
+        {% csrf_token %}
+      {% for field in context.new_channel_form %}
+        {{ field.label_tag }}
+        <ul>
+        {% for error in field.errors %}
+        <li class='error'>{{error}} </li>
+        {% endfor %}
+          </ul>
+        {{ field }}
+        {% endfor  %}
+        <button id="create-channel-save">Create</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+  
+{% block sidebar %}
+
+<div id="sidebar">
+      <div id="sidebar-top">
+        {% if context.previous %}
+        <a href=""> &#60;&#60;</a>
+        {% else %}
+        {% endif %}
+        <a href="{% url 'chatroom:home' %}">&#60;&#60;</a>
+        <span id="channels-link"><a href="{% url 'chatroom:home' %}">Home</a></span>
+        <span id="add-channel">&#43;</span>
+        
+        <span id="cancel-menu">x</span>
+      </div>
+      <div id="sidebar-middle">
+        <div id="search">
+          <form action="{% url 'chatroom:search' %}" >
+            {% csrf_token %}
+            <img src="{% static 'chatroom/temp-images/search.svg' %}" alt="" id="search-icon" />
+            <input type="search" name="search" id="search-input" placeholder="Search">
+            </input>
+          </form>
+        </div>
+        <div id="channel-list">
+         <span class="channel-list-title">Your Channels:</span>
+          {% for y in context.user_channel_list %}
+          <a href="{{ y.get_absolute_url }}" class="channel-item">
+            <div class="channel-item-no">
+              {{y.channel_abv}}
+            </div>
+            <div class="channel-item-name">
+              {{y.title}}
+            </div>
+          </a>
+          {% empty %}
+          <span>You've not joined any channel yet</span>
+          {% endfor %}
+        </div>
+        <div id="channel-list">
+          <span class="channel-list-title">Recommended</span>
+          {% for x in context.channel_list %}
+          <a href="{{ x.get_absolute_url }}" class="channel-item">
+            <div class="channel-item-no">
+              {{x.channel_abv}}
+            </div>
+            <div class="channel-item-name">
+              {{x.title}}
+            </div>
+          </a>
+          {% empty %}
+          <span>Sorry no match was found</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% include './sidebar_bottom.html' %}
+    </div>
+
+{% endblock %}
+  
+{% block main %}
+
+<div id="main">
+      <div id="main-top">
+        <img src="{% static 'chatroom/temp-images/menu-solid.svg' %}" alt="" id="menu-icon">
+        <p>Search</p>
+      </div>
+      <div id="main-middle" ">
+        <h3 class="channel-listing-heading">Search results for "{{ context.search_term }}"</h3>
+        {% for x in context.search_result %}
+        
+        <div class="channel-listing-item">
+          <div class="channel-listing-item-dp" >
+            <a href="{{x.get_absolute_url}}" target="_self">
+            <img src="{{ x.image_url }}" alt="" /> </a>
+          </div>
+          <div class="channel-listing-item-right">
+            <div class="channel-listing-item-title">
+              <a href="{{x.get_absolute_url}}" target="_self">{{ x.title }}</a>
+            </div>
+            <div class="channel-listing-item-desc">
+              <p>
+                {{ x.desc | truncatewords:20  }}
+              </p>
+            </div>
+            <div class="channel-listing-item-cta">
+              <a href="">
+                Join
+              </a>
+            </div>
+          </div>
+        </div>
+          
+        {% empty %}
+        <span>Sorry no match was found</span>
+        {% endfor %}
+      </div>
+    </div>
+
+{% endblock %}
+
